@@ -13,7 +13,7 @@ DATA_USER=$($PSQL "SELECT * FROM users_data WHERE username = '$USERNAME'")
 
 if [[ -z $DATA_USER ]]
 then
-  INSERTED_DATA_USER=$($PSQL "INSERT INTO users_data(username, games_played, best_game) VALUES ($USERNAME, 0, 0)")
+  INSERTED_DATA_USER=$($PSQL "INSERT INTO users_data(username, games_played, best_game) VALUES ('$USERNAME', 0, 0)")
   if [[ $INSERTED_DATA_USER = "INSERT 0 1" ]]
   then
       echo -e "\nWelcome, $USERNAME! It looks like this is your first time here.\n"
