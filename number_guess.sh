@@ -33,23 +33,47 @@ then
   while [[ $USER_GUESS_NUMBER != $ANSWER_NUMBER_RANDOM ]]
   do
     NUMBER_OF_GAMES+=1
-    if [[ $USER_GUESS_NUMBER > $ANSWER_NUMBER_RANDOM ]]
-    then
-      echo -e "\nIt's lower than that, guess again:"
-      read USER_GUESS_NUMBER
-    elif [[ $USER_GUESS_NUMBER < $ANSWER_NUMBER_RANDOM ]]
-    then
-      echo -e "\nIt's higher than that, guess again:"
-      read USER_GUESS_NUMBER
-    elif [[ ! $USER_GUESS_NUMBER =~ ^[0-9]+$ ]]
+    if [[ ! $USER_GUESS_NUMBER =~ ^[0-9]+$ ]]
     then
       echo -e "\nThat is not an integer, guess again:"
       read USER_GUESS_NUMBER
     else
-      echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
-
+      if [[ $USER_GUESS_NUMBER > $ANSWER_NUMBER_RANDOM ]]
+      then
+        echo -e "\nIt's lower than that, guess again:"
+        read USER_GUESS_NUMBER
+      elif [[ $USER_GUESS_NUMBER < $ANSWER_NUMBER_RANDOM ]]
+      then
+        echo -e "\nIt's higher than that, guess again:"
+        read USER_GUESS_NUMBER
+      fi
     fi
   done
+
+  if [[ $USER_GUESS_NUMBER == $ANSWER_NUMBER_RANDOM ]]
+  then
+    echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
+    GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = $USERNAME")
+    BEST_GAME=$($PSQL "SELECT best_game FROM users_data WHERE username = $USERNAME")
+    $GAME_NOW=$(($GAME_PLAYED_DATABASE + 1))
+
+    if [[ $BEST_GAME == 0 ]]
+    then
+      UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = $NUMBER_OF_BEST_GAMES WHERE username = $USERNAME")
+    else
+      if [[ $NUMBER_OF_GAMES < $BEST_GAME ]]
+      then
+        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = $NUMBER_OF_BEST_GAMES WHERE username = $USERNAME")
+      else
+        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW WHERE username = $USERNAME")
+      fi
+    fi
+    
+    if [[ $UPDATED_DATA_USER_1 == "UPDATE 1" ]]
+    then
+      echo -e "\n~~ Data 1 tries updated successfully\n"
+    fi
+  fi
 else
   echo -e "\nYou guessed it in 1 tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
   
@@ -57,8 +81,8 @@ else
   $GAME_NOW=$(($GAME_PLAYED_DATABASE + 1))
 
   UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = 1 WHERE username = $USERNAME")
-  if [[ $UPDATED_DATA_USER_1 == "INSERT 0 1" ]]
+  if [[ $UPDATED_DATA_USER_1 == "UPDATE 1" ]]
   then
-    echo -e "\n~~ Data 1 tries inserted successfully\n"
+    echo -e "\n~~ Data 1 tries updated successfully\n"
   fi
 fi
