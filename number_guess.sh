@@ -10,7 +10,8 @@ echo "Enter your username:"
 read USERNAME
 
 DATA_USER=$($PSQL "SELECT * FROM users_data WHERE username = '$USERNAME'")
-if[[ -z $DATA_USER ]]
+
+if [[ -z $DATA_USER ]]
 then
   INSERTED_DATA_USER=$($PSQL "INSERT INTO users_data(username, games_played, best_game) VALUES ($USERNAME, 0, 0)")
   if [[ $INSERTED_DATA_USER = "INSERT 0 1" ]]
@@ -46,8 +47,18 @@ then
       read USER_GUESS_NUMBER
     else
       echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
+
     fi
   done
 else
   echo -e "\nYou guessed it in 1 tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
+  
+  GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = $USERNAME")
+  $GAME_NOW=$(($GAME_PLAYED_DATABASE + 1))
+
+  UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = 1 WHERE username = $USERNAME")
+  if [[ $UPDATED_DATA_USER_1 == "INSERT 0 1" ]]
+  then
+    echo -e "\n~~ Data 1 tries inserted successfully\n"
+  fi
 fi
