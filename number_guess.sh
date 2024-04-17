@@ -3,6 +3,7 @@
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
 ANSWER_NUMBER_RANDOM=$((RANDOM % 1000 + 1))
+echo -e "$ANSWER_NUMBER_RANDOM"
 
 echo -e "\n~~~ Number Guessing Game ~~~\n"
 
@@ -21,10 +22,11 @@ then
 else
   GAME_PLAYED=$(echo "$DATA_USER" | cut -d '|' -f 3)
   BEST_GAME=$(echo "$DATA_USER" | cut -d '|' -f 4)
-  echo -e "\nWelcome back, $USERNAME!, You have played $GAME_PLAYED games, and your best game took $BEST_GAME guesses.\n"
+  # echo -e "\nWelcome back, $USERNAME! You have played $GAME_PLAYED games, and your best game took $BEST_GAME guesses.\n"
+  echo -e "\nWelcome back, $USERNAME! You have played $GAME_PLAYED games, and your best game took $BEST_GAME guesses.\n"
 fi
 
-echo -e "Guess the secret number between 1 and 1000:"
+echo -e "\nGuess the secret number between 1 and 1000:"
 read USER_GUESS_NUMBER
 NUMBER_OF_GAMES=0
 
@@ -32,7 +34,7 @@ if [[ $USER_GUESS_NUMBER != $ANSWER_NUMBER_RANDOM ]]
 then
   while [[ $USER_GUESS_NUMBER != $ANSWER_NUMBER_RANDOM ]]
   do
-    NUMBER_OF_GAMES+=1
+    ((NUMBER_OF_GAMES++))
     if [[ ! $USER_GUESS_NUMBER =~ ^[0-9]+$ ]]
     then
       echo -e "\nThat is not an integer, guess again:"
@@ -52,37 +54,28 @@ then
 
   if [[ $USER_GUESS_NUMBER == $ANSWER_NUMBER_RANDOM ]]
   then
-    echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
-    GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = $USERNAME")
-    BEST_GAME=$($PSQL "SELECT best_game FROM users_data WHERE username = $USERNAME")
-    $GAME_NOW=$(($GAME_PLAYED_DATABASE + 1))
+    echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
+    GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = '$USERNAME'")
+    BEST_GAME=$($PSQL "SELECT best_game FROM users_data WHERE username = '$USERNAME'")
+    ((GAMES_PLAYED_DATABASE++))
 
     if [[ $BEST_GAME == 0 ]]
     then
-      UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = $NUMBER_OF_BEST_GAMES WHERE username = $USERNAME")
+      UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE, best_game = $NUMBER_OF_GAMES WHERE username = '$USERNAME'")
     else
       if [[ $NUMBER_OF_GAMES < $BEST_GAME ]]
       then
-        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = $NUMBER_OF_BEST_GAMES WHERE username = $USERNAME")
+        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE, best_game = $NUMBER_OF_GAMES WHERE username = '$USERNAME'")
       else
-        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW WHERE username = $USERNAME")
+        UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE WHERE username = '$USERNAME'")
       fi
-    fi
-    
-    if [[ $UPDATED_DATA_USER_1 == "UPDATE 1" ]]
-    then
-      echo -e "\n~~ Data 1 tries updated successfully\n"
     fi
   fi
 else
-  echo -e "\nYou guessed it in 1 tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!\n"
+  echo -e "\nYou guessed it in 1 tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
   
-  GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = $USERNAME")
-  $GAME_NOW=$(($GAME_PLAYED_DATABASE + 1))
+  GAMES_PLAYED_DATABASE=$($PSQL "SELECT games_played FROM users_data WHERE username = '$USERNAME'")
+  ((GAMES_PLAYED_DATABASE++))
 
-  UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAME_NOW best_game = 1 WHERE username = $USERNAME")
-  if [[ $UPDATED_DATA_USER_1 == "UPDATE 1" ]]
-  then
-    echo -e "\n~~ Data 1 tries updated successfully\n"
-  fi
+  UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE, best_game = 1 WHERE username = '$USERNAME'")
 fi
