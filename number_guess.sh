@@ -3,7 +3,6 @@
 PSQL="psql --username=freecodecamp --dbname=number_guess -t --no-align -c"
 
 ANSWER_NUMBER_RANDOM=$((RANDOM % 1000 + 1))
-echo -e "$ANSWER_NUMBER_RANDOM"
 
 echo -e "\n~~~ Number Guessing Game ~~~\n"
 
@@ -22,12 +21,12 @@ then
 else
   GAME_PLAYED=$(echo "$DATA_USER" | cut -d '|' -f 3)
   BEST_GAME=$(echo "$DATA_USER" | cut -d '|' -f 4)
-  echo -e "\nWelcome back, $USERNAME! You have played $GAME_PLAYED games, and your best game took $BEST_GAME guesses.\n"
+  echo -e "Welcome back, $USERNAME! You have played $GAME_PLAYED games, and your best game took $BEST_GAME guesses."
 fi
 
 echo -e "\nGuess the secret number between 1 and 1000:"
 read USER_GUESS_NUMBER
-NUMBER_OF_GAMES=0
+NUMBER_OF_GAMES=1
 
 if [[ $USER_GUESS_NUMBER != $ANSWER_NUMBER_RANDOM ]]
 then
@@ -68,7 +67,7 @@ then
         UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE WHERE username = '$USERNAME'")
       fi
     fi
-    echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
+    echo "You guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
   fi
 else
   ((NUMBER_OF_GAMES++))
@@ -78,5 +77,5 @@ else
 
   UPDATED_DATA_USER_1=$($PSQL "UPDATE users_data SET games_played = $GAMES_PLAYED_DATABASE, best_game = 1 WHERE username = '$USERNAME'")
 
-  echo -e "\nYou guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
+  echo "You guessed it in $NUMBER_OF_GAMES tries. The secret number was $ANSWER_NUMBER_RANDOM. Nice job!"
 fi
